@@ -1,0 +1,35 @@
+.loading {
+    font-size: 48px;
+    padding-top: 50px;
+}
+
+.loading .fa-spinner {
+    margin-left: 50%
+}
+
+.tab-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.nav-tabs>li {
+    background-color: #efefef;
+}
+
+.item.need label {
+    font-weight: bold;
+}
+
+.item.have {
+    color: #666;
+}
+
+.list-group-item.item {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.empty {
+    padding: 20px;
+    font-weight: bold;
+}

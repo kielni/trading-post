@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trading post</title>
+
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script src="https://gstatic.com/firebasejs/3.5.2/firebase.js"></script>
+  <script src="https://unpkg.com/vuefire/dist/vuefire.js"></script>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="config.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <template v-if="loadedStores">
+      <ul class="nav nav-tabs" role="tablist">
+        <template v-for="store in storeMeta">
+          <li role="presentation" v-bind:class="{ active: store.active }">
+            <a v-bind:href="'#'+store.cssId" v-bind:aria-controls="store.cssId" role="tab" data-toggle="tab">
+              <img v-if="store.icon" v-bind:src="store.icon" class="tab-icon">
+              <span v-else>{{store.name}}</span>
+            </a>
+          </li>
+        </template>
+      </ul>
+
+      <div class="tab-content items">
+          <template v-for="store in storeMeta">
+            <div role="tabpanel" class="tab-pane" v-bind:class="{ active: store.active }" v-bind:id="store.cssId">
+              <ul class="list-group">
+                <template v-for="item in sortedNeed[store.id]">
+                  <li class="list-group-item item" v-bind:class="{ need: item.need, have: !item.need }">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" v-bind:id="item.id" v-bind:value="item.name" v-on:change="change(store.id, item.name, $event)" v-model="form[item.path]">
+                        {{item.name}}
+                      </label>
+                    </div>
+                  </li>
+                </template>
+                <div v-if="!sortedNeed[store.id].length" class="empty">
+                  Nothing on the list.
+                </div>
+              </ul>
+            </div>
+          </template>
+    </template>
+    <template v-else>
+      <div class="loading">
+        <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+      </div>
+    </template>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>
