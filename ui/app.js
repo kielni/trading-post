@@ -42,10 +42,12 @@ var vm = new Vue({
         ts: ts
       };
       this.$firebaseRefs.needRef.child(storeId + '/' + item).set(!checked);
-      var log = {};
-      // TODO: set coordinates
-      log[ts] = true;
-      this.$firebaseRefs.logRef.child(storeId + '/' + item).set(log);
+      if (checked) {
+        // TODO: set coordinates
+        var log = {};
+        log[ts] = true;
+        this.$firebaseRefs.logRef.child(storeId + '/' + item).set(log);
+      }
     },
 
     addItem: function (ev) {
@@ -69,9 +71,10 @@ var vm = new Vue({
       if (!last.store || !last.item) {
         return;
       }
-      this.needRef[last.store][last.item] = last.was;
+      var path = last.store + '/' + last.item;
+      this.$firebaseRefs.needRef.child(path).set(last.was);
+      this.$firebaseRefs.logRef.child(path + '/' + last.ts).remove();
       this.last = {};
-      // TODO: remove from log
     }
   },
 
