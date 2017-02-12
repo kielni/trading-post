@@ -16,12 +16,20 @@
     background-color: #efefef;
 }
 
+.nav-tabs {
+    background-color: #efefef;
+}
+
 .item.need label {
     font-weight: bold;
 }
 
 .item.have {
     color: #666;
+}
+
+.have .checkbox label {
+    font-weight: 200;
 }
 
 .list-group-item.item {
@@ -32,4 +40,51 @@
 .empty {
     padding: 20px;
     font-weight: bold;
+}
+
+.added {
+    margin-top: 10px;
+    display: none;
+}
+
+.add button {
+    margin-top: -3px;
+}
+
+.add input {
+    display: inline-block;
+    width: 65%;
+}
+
+.tool-buttons {
+    display: inline-block;
+    float: right;
+}
+
+.confirm .fa {
+    font-size: 24px;
+    color: green;
+}
+
+.top-right {
+    max-width: 50px;
+}
+
+.top-right .undo, .top-right .confirm {
+    margin-left: 10px;
+    margin-top: 25px;
+}
+
+.count {
+    text-align: center;
+}
+
+.count .badge {
+    font-size: 8px;
+}
+
+.nav-tabs>li>a.store-tab {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    min-height: 82px;
 }

@@ -22,18 +22,32 @@
       <ul class="nav nav-tabs" role="tablist">
         <template v-for="store in storeMeta">
           <li role="presentation" v-bind:class="{ active: store.active }">
-            <a v-bind:href="'#'+store.cssId" v-bind:aria-controls="store.cssId" role="tab" data-toggle="tab">
+            <a v-bind:href="'#'+store.cssId" v-bind:aria-controls="store.cssId" role="tab" data-toggle="tab" class="store-tab">
               <img v-if="store.icon" v-bind:src="store.icon" class="tab-icon">
               <span v-else>{{store.name}}</span>
+              <div class="count" v-if="needCount[store.id]">
+                <span class="badge">{{needCount[store.id]}}</span>
+              </div>
             </a>
           </li>
         </template>
       </ul>
-
       <div class="tab-content items">
           <template v-for="store in storeMeta">
             <div role="tabpanel" class="tab-pane" v-bind:class="{ active: store.active }" v-bind:id="store.cssId">
               <ul class="list-group">
+                <li class="list-group-item add" v-bind:data-store="store.id">
+                  <input v-model="newItem" class="form-control add" placeholder="add item" @keyup.enter="addItem">
+                  <button class="btn btn-default add" v-on:click="addItem"><i class="fa fa-plus"></i></button>
+                  <div class="tool-buttons">
+                    <div class="undo" v-if="show.undo">
+                      <a class="btn btn-default" v-on:click="undo" v-bind:disabled="undoDisabled"><i class="fa fa-undo"></i></a>
+                    </div>
+                    <div class="confirm" v-if="show.confirm">
+                      <a><i class="fa fa-check"></i></a>
+                    </div>
+                  </div>
+                </li>
                 <template v-for="item in sortedNeed[store.id]">
                   <li class="list-group-item item" v-bind:class="{ need: item.need, have: !item.need }">
                     <div class="checkbox">

@@ -1,4 +1,4 @@
-/* global config, firebase, Vue, _ */
+/* global config, firebase, Vue, _, $ */
 var db = firebase.initializeApp(config.firebase).database();
 
 // use vm for console debugging
@@ -8,20 +8,24 @@ var vm = new Vue({
 
   data: {
     storeId: config.defaultStore,
-    form: {}
+    form: {},
+    newItem: '',
+    show: { confirm: false, undo: true },
+    last: {}
   },
 
   firebase: function () {
     return {
-      storesRef: db.ref('stores'),
-      needRef: db.ref('need'),
-
-      storesRefObject: {
+      storesRef: {
         source: db.ref('stores'),
         asObject: true
       },
-      needRefObject: {
+      needRef: {
         source: db.ref('need'),
+        asObject: true
+      },
+      logRef: {
+        source: db.ref('log'),
         asObject: true
       }
     };
@@ -30,19 +34,60 @@ var vm = new Vue({
   methods: {
     change: function (storeId, item) {
       var checked = this.form[storeId + ':' + item];
-      this.needRefObject[storeId][item] = !checked;
+      var ts = (new Date()).toISOString().replace(/\..*/, '');
+      this.last = {
+        store: storeId,
+        item: item,
+        was: checked,
+        ts: ts
+      };
+      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(!checked);
+      var log = {};
+      // TODO: set coordinates
+      log[ts] = true;
+      this.$firebaseRefs.logRef.child(storeId + '/' + item).set(log);
+    },
+
+    addItem: function (ev) {
+      var storeId = $(ev.target).closest('.list-group-item').attr('data-store');
+      var item = this.newItem.toLowerCase();
+      console.log('enter item ' + item + ' to ', storeId);
+      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(true);
+      this.show = { confirm: true };
+      var _this = this;
+      setTimeout(function () {
+        _this.show = { undo: true };
+      }, 2000);
+      this.newItem = '';
+    },
+
+    undo: function () {
+      var last = this.last;
+      if (!last) {
+        return;
+      }
+      if (!last.store || !last.item) {
+        return;
+      }
+      this.needRef[last.store][last.item] = last.was;
+      this.last = {};
+      // TODO: remove from log
     }
   },
 
   computed: {
+    undoDisabled: function () {
+      return Object.keys(this.last).length ? false : 'disabled';
+    },
+
     storeIds: function () {
-      return _.without(Object.keys(this.storesRefObject), '.key');
+      return _.without(Object.keys(this.storesRef), '.key');
     },
 
     storeMeta: function () {
       var meta = {};
       var activeId = this.storeId;
-      var stores = this.storesRefObject;
+      var stores = this.storesRef;
       this.storeIds.forEach(function (storeId) {
         meta[storeId] = {
           id: storeId,
@@ -59,8 +104,19 @@ var vm = new Vue({
       return this.storeIds.length;
     },
 
+    needCount: function () {
+      var need = this.needRef;
+      var count = {};
+      this.storeIds.forEach(function (storeId) {
+        count[storeId] = Object.keys(need[storeId] || {}).filter(function (item) {
+          return need[storeId][item];
+        }).length;
+      });
+      return count;
+    },
+
     sortedNeed: function () {
-      var need = this.needRefObject;
+      var need = this.needRef;
       var form = this.form;
       var items = {};
       this.storeIds.forEach(function (storeId) {
