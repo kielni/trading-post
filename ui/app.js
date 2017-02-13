@@ -11,7 +11,8 @@ var vm = new Vue({
     form: {},
     newItem: '',
     show: { confirm: false, undo: true },
-    last: {}
+    last: {},
+    itemsLoaded: []
   },
 
   firebase: function () {
@@ -50,8 +51,11 @@ var vm = new Vue({
       }
     },
 
-    addItem: function (ev) {
-      var storeId = $(ev.target).closest('.list-group-item').attr('data-store');
+    clickAddItem: function (ev) {
+      this.addItem($(ev.target).closest('.list-group-item').attr('data-store'));
+    },
+
+    addItem: function (storeId) {
       var item = this.newItem.toLowerCase();
       console.log('enter item ' + item + ' to ', storeId);
       this.$firebaseRefs.needRef.child(storeId + '/' + item).set(true);
@@ -60,6 +64,11 @@ var vm = new Vue({
       setTimeout(function () {
         _this.show = { undo: true };
       }, 2000);
+      this.last = {
+        store: storeId,
+        item: item,
+        was: false
+      };
       this.newItem = '';
     },
 
@@ -73,8 +82,30 @@ var vm = new Vue({
       }
       var path = last.store + '/' + last.item;
       this.$firebaseRefs.needRef.child(path).set(last.was);
-      this.$firebaseRefs.logRef.child(path + '/' + last.ts).remove();
+      if (last.ts) {
+        this.$firebaseRefs.logRef.child(path + '/' + last.ts).remove();
+      }
       this.last = {};
+    }
+  },
+
+  watch: {
+    itemsLoaded: function (val) {
+      var _this = this;
+      // first time: val=[] oldVal=[target, ] but need[storeId] all undefined
+      // second time: val[target,] oldVal=[target,] and need[storeId] set
+      val.forEach(function (storeId) {
+        if (!_this.needRef[storeId]) {
+          return;
+        }
+        $('#' + _this.storeMeta[storeId].cssId + ' .form-control.add').typeahead({
+          source: _.without(Object.keys(_this.needRef[storeId] || {}), '.key'),
+          afterSelect: function (item) {
+            _this.newItem = item;
+            _this.addItem(this.$element.closest('.list-group-item').attr('data-store'));
+          }
+        });
+      });
     }
   },
 
@@ -84,7 +115,7 @@ var vm = new Vue({
     },
 
     storeIds: function () {
-      return _.without(Object.keys(this.storesRef), '.key');
+      return _.without(Object.keys(this.storesRef || {}), '.key');
     },
 
     storeMeta: function () {
@@ -135,6 +166,7 @@ var vm = new Vue({
         });
         items[storeId] = _.sortBy(items[storeId], 'sortKey');
       });
+      this.itemsLoaded = Object.keys(items);
       return items;
     }
   }

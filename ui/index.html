@@ -37,8 +37,8 @@
             <div role="tabpanel" class="tab-pane" v-bind:class="{ active: store.active }" v-bind:id="store.cssId">
               <ul class="list-group">
                 <li class="list-group-item add" v-bind:data-store="store.id">
-                  <input v-model="newItem" class="form-control add" placeholder="add item" @keyup.enter="addItem">
-                  <button class="btn btn-default add" v-on:click="addItem"><i class="fa fa-plus"></i></button>
+                  <input v-model="newItem" class="form-control add" placeholder="add item" @keyup.enter="clickAddItem">
+                  <button class="btn btn-default add" v-on:click="clickAddItem"><i class="fa fa-plus"></i></button>
                   <div class="tool-buttons">
                     <div class="undo" v-if="show.undo">
                       <a class="btn btn-default" v-on:click="undo" v-bind:disabled="undoDisabled"><i class="fa fa-undo"></i></a>
@@ -76,5 +76,6 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src="app.js"></script>
+  <script src="lib/bootstrap3-typeahead.min.js"></script>
 </body>
 </html>
