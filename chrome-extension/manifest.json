@@ -1,0 +1,26 @@
+{
+    "manifest_version": 2,
+    "name": "Target shopping list",
+    "browser_action": {
+        "default_icon": "house.png"
+    },
+    "background": {
+        "page": "background.html"
+    },
+    "content_scripts": [
+        {
+            "matches": ["http://www.target.com/p/*"],
+            "js": ["arrive.min.js", "zepto.min.js", "content.js"]
+        }
+    ],
+    "version": "1.0",
+    "description": "Add item to Target cart",
+    "permissions": [
+        "tabs",
+        "https://*.firebaseio.com/*",
+        "http://www.target.com/p/*",
+        "https://www.target.com/p/*",
+        "https://www-secure.target.com/co-cart"
+    ],
+    "content_security_policy": "script-src 'self' https://*.firebaseio.com; object-src 'self'"
+}
