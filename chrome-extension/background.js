@@ -4,14 +4,21 @@ firebase.initializeApp(firebaseConfig);
 var loaded = false;
 var data = {};
 var db = firebase.database();
-var dbPath = '/order/target';
 var currentTab = {};
 var globalData = {};
 var itemCount = 0;
 
 // load items from firebase
-db.ref(dbPath).on('value', function(snapshot) {
-    data = snapshot.val() || {};
+db.ref('/').on('value', function(snapshot) {
+    // need = /need/target order-able = /delivery/target
+    var allData = snapshot.val() || {};
+    var delivery = Object.keys(allData.delivery.target);
+    var need = Object.keys(allData.need.target).filter(function(item) {
+        return allData.need.target[item] && delivery.indexOf(item) >= 0;
+    });
+    need.forEach(function(item) {
+        data[item] = allData.delivery.target[item];
+    });
     itemCount = Object.keys(data).length;
     chrome.browserAction.setBadgeText({text: itemCount+''});
     loaded = true;
@@ -34,7 +41,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         // load url in current tab
         chrome.tabs.update(currentTab.id, {url: data[item]});
     }, function() {
-        console.log('done all');
         globalData.callback = null;
         chrome.tabs.update(currentTab.id, {url: 'https://www-secure.target.com/co-cart'});
         chrome.browserAction.setBadgeText({text: ''});
@@ -46,25 +52,23 @@ chrome.tabs.onUpdated.addListener(function(tabId, info) {
     if (info.status !== 'complete' || !globalData.callback) {
         return;
     }
-    console.log('tab '+tabId+' updated; sending message');
     // send message to content script to click add
-    chrome.tabs.sendMessage(currentTab.id, {'add': globalData.item}, {}, function() {
-        console.log('background sent message');
-    });
+    chrome.tabs.sendMessage(currentTab.id, {'add': globalData.item}, {});
 });
 
 // listen for message that content script added item to cart
 chrome.runtime.onMessage.addListener(function(message) {
-    console.log('extension received message', message);
     if (!message.status || !globalData.callback) {
         return;
     }
-    // remove from firebase and go to next item
-    db.ref(dbPath+'/'+globalData.item).remove();
-    var log = {};
+    // mark as not needed and go to next item
+    var update = {};
+    update[globalData.item] = false;
+    db.ref('need/target').update(update);
+    update = {};
     var ts = (new Date()).toISOString().replace(/\..*/, '');
-    log['log/target/'+globalData.item+'/'+ts] = true;
-    db.ref().update(log);
+    update[globalData.item+'/'+ts] = true;
+    db.ref('log/target').update(update);
     itemCount--;
     chrome.browserAction.setBadgeText({text: itemCount+''});
     globalData.callback();
