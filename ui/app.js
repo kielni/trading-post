@@ -28,6 +28,10 @@ var vm = new Vue({
       logRef: {
         source: db.ref('log'),
         asObject: true
+      },
+      deliveryRef: {
+        source: db.ref('delivery'),
+        asObject: true
       }
     };
   },
@@ -151,12 +155,14 @@ var vm = new Vue({
 
     sortedNeed: function () {
       var need = this.needRef;
+      var delivery = this.deliveryRef;
       var form = this.form;
       var items = {};
       this.storeIds.forEach(function (storeId) {
         items[storeId] = _.without(Object.keys(need[storeId] || {}), '.key').map(function (item) {
           form[storeId + ':' + item] = !need[storeId][item];
           return {
+            delivery: delivery && delivery[storeId] && delivery[storeId][item],
             need: need[storeId][item],
             name: item,
             id: item.replace(/[^\w\d]/g, ''),

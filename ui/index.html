@@ -54,6 +54,7 @@
                       <label>
                         <input type="checkbox" v-bind:id="item.id" v-bind:value="item.name" v-on:change="change(store.id, item.name, $event)" v-model="form[item.path]">
                         {{item.name}}
+                        <i v-if="item.delivery" class="fa fa-truck delivery"></i>
                       </label>
                     </div>
                   </li>
