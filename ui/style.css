@@ -28,6 +28,10 @@
     color: #666;
 }
 
+.item-name {
+    cursor: pointer;
+}
+
 .have .checkbox label {
     font-weight: 200;
 }
@@ -92,4 +96,8 @@
 .delivery {
     color: #644117;
     padding-left: 10px;
+}
+
+.checkbox {
+    display: inline-block;
 }

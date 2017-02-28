@@ -49,14 +49,17 @@
                   </div>
                 </li>
                 <template v-for="item in sortedNeed[store.id]">
-                  <li class="list-group-item item" v-bind:class="{ need: item.need, have: !item.need }">
+                  <li class="list-group-item item" v-bind:class="{ need: item.need, have: !item.need }" v-on:mousedown="itemMousedown(item)" v-on:mouseup="itemMouseup(item)">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox" v-bind:id="item.id" v-bind:value="item.name" v-on:change="change(store.id, item.name, $event)" v-model="form[item.path]">
+                        <input type="checkbox" v-bind:id="item.id" v-bind:value="item.name" v-on:change="change(store.id, item.name, $event)" v-model="checked[item.path]">
                         {{item.name}}
-                        <i v-if="item.delivery" class="fa fa-truck delivery"></i>
+                        <span v-if="item.need > 1">
+                          {{item.need}}
+                        </span>
                       </label>
                     </div>
+                    <i v-if="item.delivery" class="fa fa-truck delivery"></i>
                   </li>
                 </template>
                 <div v-if="!sortedNeed[store.id].length" class="empty">

@@ -8,11 +8,11 @@ var vm = new Vue({
 
   data: {
     storeId: config.defaultStore,
-    form: {},
+    checked: {},
     newItem: '',
     show: { confirm: false, undo: true },
     last: {},
-    itemsLoaded: []
+    itemsLoaded: [],
   },
 
   firebase: function () {
@@ -38,17 +38,16 @@ var vm = new Vue({
 
   methods: {
     change: function (storeId, item) {
-      var checked = this.form[storeId + ':' + item];
       var ts = (new Date()).toISOString().replace(/\..*/, '');
       this.last = {
         store: storeId,
         item: item,
-        was: checked,
+        was: this.needRef[storeId][item],
         ts: ts
       };
-      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(!checked);
-      if (checked) {
-        // TODO: set coordinates
+      var newVal = this.needRef[storeId][item] ? 0 : 1;
+      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(newVal);
+      if (newVal) {
         var log = {};
         log[ts] = true;
         this.$firebaseRefs.logRef.child(storeId + '/' + item).set(log);
@@ -62,7 +61,7 @@ var vm = new Vue({
     addItem: function (storeId) {
       var item = this.newItem.toLowerCase();
       console.log('enter item ' + item + ' to ', storeId);
-      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(true);
+      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(1);
       this.show = { confirm: true };
       var _this = this;
       setTimeout(function () {
@@ -71,7 +70,7 @@ var vm = new Vue({
       this.last = {
         store: storeId,
         item: item,
-        was: false
+        was: 0
       };
       this.newItem = '';
     },
@@ -90,7 +89,7 @@ var vm = new Vue({
         this.$firebaseRefs.logRef.child(path + '/' + last.ts).remove();
       }
       this.last = {};
-    }
+    },
   },
 
   watch: {
@@ -156,18 +155,18 @@ var vm = new Vue({
     sortedNeed: function () {
       var need = this.needRef;
       var delivery = this.deliveryRef;
-      var form = this.form;
+      var checked = this.checked;
       var items = {};
       this.storeIds.forEach(function (storeId) {
         items[storeId] = _.without(Object.keys(need[storeId] || {}), '.key').map(function (item) {
-          form[storeId + ':' + item] = !need[storeId][item];
+          checked[storeId + ':' + item] = need[storeId][item] ? false : true;
           return {
             delivery: delivery && delivery[storeId] && delivery[storeId][item],
             need: need[storeId][item],
             name: item,
             id: item.replace(/[^\w\d]/g, ''),
             path: storeId + ':' + item,
-            sortKey: (need[storeId][item] ? '0' : '1') + item
+            sortKey: (need[storeId][item] ? '0' : '1') + item,
           };
         });
         items[storeId] = _.sortBy(items[storeId], 'sortKey');
