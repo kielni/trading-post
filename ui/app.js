@@ -6,8 +6,7 @@ Vue.component('list-item', {
   props: ['item'],
   data: function () {
     return {
-      editable: false,
-      //checked: !this.item.need,
+      editable: false
     };
   },
 
@@ -63,7 +62,6 @@ var vm = new Vue({
 
   data: {
     storeId: config.defaultStore,
-    // checked: {},
     newItem: '',
     show: { confirm: false, undo: true },
     last: {},
@@ -72,28 +70,16 @@ var vm = new Vue({
 
   firebase: function () {
     return {
-      storesRef: {
-        source: db.ref('stores'),
+      ref: {
+        source: db.ref(),
         asObject: true
       },
-      needRef: {
-        source: db.ref('need'),
-        asObject: true
-      },
-      logRef: {
-        source: db.ref('log'),
-        asObject: true
-      },
-      deliveryRef: {
-        source: db.ref('delivery'),
-        asObject: true
-      }
     };
   },
 
   methods: {
     quantity: function (itemObj, quantity) {
-      this.$firebaseRefs.needRef.child(itemObj.store + '/' + itemObj.name).set(quantity);
+      this.$firebaseRefs.ref.child('need/' + itemObj.store + '/' + itemObj.name).set(quantity);
     },
 
     check: function (itemObj) {
@@ -103,15 +89,16 @@ var vm = new Vue({
       this.last = {
         store: storeId,
         item: item,
-        was: this.needRef[storeId][item],
+        was: this.ref.need[storeId][item],
         ts: ts
       };
-      var newVal = this.needRef[storeId][item] ? 0 : 1;
-      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(newVal);
+      var newVal = this.ref.need[storeId][item] ? 0 : 1;
+      var path = storeId + '/' + item;
+      this.$firebaseRefs.ref.child('need/' + path).set(newVal);
       if (!newVal) {
         var log = {};
         log[ts] = true;
-        this.$firebaseRefs.logRef.child(storeId + '/' + item).set(log);
+        this.$firebaseRefs.ref.child('log/' + path).set(log);
       }
     },
 
@@ -122,7 +109,7 @@ var vm = new Vue({
     addItem: function (storeId) {
       var item = this.newItem.toLowerCase();
       console.log('enter item ' + item + ' to ', storeId);
-      this.$firebaseRefs.needRef.child(storeId + '/' + item).set(1);
+      this.$firebaseRefs.ref.child('need/' + storeId + '/' + item).set(1);
       this.show = { confirm: true };
       var _this = this;
       setTimeout(function () {
@@ -145,9 +132,9 @@ var vm = new Vue({
         return;
       }
       var path = last.store + '/' + last.item;
-      this.$firebaseRefs.needRef.child(path).set(last.was);
+      this.$firebaseRefs.ref.child('need/' + path).set(last.was);
       if (last.ts) {
-        this.$firebaseRefs.logRef.child(path + '/' + last.ts).remove();
+        this.$firebaseRefs.ref.child('log/' + path + '/' + last.ts).remove();
       }
       this.last = {};
     },
@@ -156,14 +143,12 @@ var vm = new Vue({
   watch: {
     itemsLoaded: function (val) {
       var _this = this;
-      // first time: val=[] oldVal=[target, ] but need[storeId] all undefined
-      // second time: val[target,] oldVal=[target,] and need[storeId] set
       val.forEach(function (storeId) {
-        if (!_this.needRef[storeId]) {
+        if (!_this.ref.need[storeId]) {
           return;
         }
         $('#' + _this.storeMeta[storeId].cssId + ' .form-control.add').typeahead({
-          source: _.without(Object.keys(_this.needRef[storeId] || {}), '.key'),
+          source: _.without(Object.keys(_this.ref.need[storeId] || {}), '.key'),
           afterSelect: function (item) {
             _this.newItem = item;
             _this.addItem(this.$element.closest('.list-group-item').attr('data-store'));
@@ -179,18 +164,18 @@ var vm = new Vue({
     },
 
     storeIds: function () {
-      return _.without(Object.keys(this.storesRef || {}), '.key');
+      return _.without(Object.keys(this.ref.stores || {}), '.key');
     },
 
     storeMeta: function () {
       var meta = {};
+      var ref = this.ref;
       var activeId = this.storeId;
-      var stores = this.storesRef;
       this.storeIds.forEach(function (storeId) {
         meta[storeId] = {
           id: storeId,
           cssId: 'store-' + storeId.replace(/[^\w\d]/g, ''),
-          name: stores[storeId],
+          name: ref.stores[storeId],
           active: storeId === activeId,
           icon: 'assets/' + config.icons[storeId]
         };
@@ -203,32 +188,28 @@ var vm = new Vue({
     },
 
     needCount: function () {
-      var need = this.needRef;
+      var ref = this.ref;
       var count = {};
       this.storeIds.forEach(function (storeId) {
-        count[storeId] = Object.keys(need[storeId] || {}).filter(function (item) {
-          return need[storeId][item];
+        count[storeId] = Object.keys(ref.need[storeId] || {}).filter(function (item) {
+          return ref.need[storeId][item];
         }).length;
       });
       return count;
     },
 
     sortedNeed: function () {
-      var need = this.needRef;
-      var delivery = this.deliveryRef;
-      // var checked = this.checked;
+      var ref = this.ref;
       var items = {};
       this.storeIds.forEach(function (storeId) {
-        items[storeId] = _.without(Object.keys(need[storeId] || {}), '.key').map(function (item) {
-          // checked[storeId + ':' + item] = need[storeId][item] ? false : true;
+        items[storeId] = _.without(Object.keys(ref.need[storeId] || {}), '.key').map(function (item) {
           return {
-            delivery: delivery && delivery[storeId] && delivery[storeId][item],
-            need: need[storeId][item],
+            delivery: ref.delivery && ref.delivery[storeId] && ref.delivery[storeId][item],
+            need: ref.need[storeId][item],
             name: item,
             id: storeId + '-' + item.replace(/[^\w\d]/g, ''),
             store: storeId,
-            // path: storeId + ':' + item,
-            sortKey: (need[storeId][item] ? '0' : '1') + item,
+            sortKey: (ref.need[storeId][item] ? '0' : '1') + item,
           };
         });
         items[storeId] = _.sortBy(items[storeId], 'sortKey');
