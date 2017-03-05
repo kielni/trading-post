@@ -1,10 +1,6 @@
 module.exports = {
   root: true,
   extends: 'airbnb-es5',
-  // required to lint *.vue files
-  plugins: [
-    'html'
-  ],
   env: {
     'browser': true
   },
@@ -18,6 +14,7 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0,
     'no-console': 0,
     'quote-props': 0,
-    'func-names': 0
+    'func-names': 0,
+    'comma-dangle': 0
   }
 };
