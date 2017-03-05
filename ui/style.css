@@ -101,3 +101,7 @@
 .checkbox {
     display: inline-block;
 }
+
+.btn-group {
+    margin-left: 10px;
+}

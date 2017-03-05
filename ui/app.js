@@ -1,6 +1,61 @@
 /* global config, firebase, Vue, _, $ */
 var db = firebase.initializeApp(config.firebase).database();
 
+Vue.component('list-item', {
+  template: '#list-item-template',
+  props: ['item'],
+  data: function () {
+    return {
+      editable: false,
+      //checked: !this.item.need,
+    };
+  },
+
+  computed: {
+    checked: function () {
+      return !this.item.need;
+    },
+  },
+
+  methods: {
+    check: function () {
+      this.$emit('check', this.item);
+    },
+
+    startTap: function ($ev) {
+      // don't track long press for buttons
+      if ($ev.target.nodeName.toLowerCase() === 'button') {
+        return;
+      }
+      this.mousedown = (new Date()).getTime();
+    },
+
+    endTap: function ($ev) {
+      // don't track long press for buttons
+      if ($ev.target.nodeName.toLowerCase() === 'button') {
+        return;
+      }
+      var ms = 0;
+      if (this.item.need && this.mousedown) {
+        ms = (new Date()).getTime() - this.mousedown;
+      }
+      this.editable = (ms > 750);
+      this.mousedown = null;
+    },
+
+    add: function () {
+      this.$emit('quantity', this.item, this.item.need + 1);
+    },
+
+    remove: function () {
+      if (!this.item.need) {
+        return;
+      }
+      this.$emit('quantity', this.item, this.item.need - 1);
+    },
+  },
+});
+
 // use vm for console debugging
 // eslint-disable-next-line no-unused-vars
 var vm = new Vue({
@@ -8,11 +63,11 @@ var vm = new Vue({
 
   data: {
     storeId: config.defaultStore,
-    checked: {},
+    // checked: {},
     newItem: '',
     show: { confirm: false, undo: true },
     last: {},
-    itemsLoaded: [],
+    itemsLoaded: []
   },
 
   firebase: function () {
@@ -37,7 +92,13 @@ var vm = new Vue({
   },
 
   methods: {
-    change: function (storeId, item) {
+    quantity: function (itemObj, quantity) {
+      this.$firebaseRefs.needRef.child(itemObj.store + '/' + itemObj.name).set(quantity);
+    },
+
+    check: function (itemObj) {
+      var storeId = itemObj.store;
+      var item = itemObj.name;
       var ts = (new Date()).toISOString().replace(/\..*/, '');
       this.last = {
         store: storeId,
@@ -47,7 +108,7 @@ var vm = new Vue({
       };
       var newVal = this.needRef[storeId][item] ? 0 : 1;
       this.$firebaseRefs.needRef.child(storeId + '/' + item).set(newVal);
-      if (newVal) {
+      if (!newVal) {
         var log = {};
         log[ts] = true;
         this.$firebaseRefs.logRef.child(storeId + '/' + item).set(log);
@@ -155,17 +216,18 @@ var vm = new Vue({
     sortedNeed: function () {
       var need = this.needRef;
       var delivery = this.deliveryRef;
-      var checked = this.checked;
+      // var checked = this.checked;
       var items = {};
       this.storeIds.forEach(function (storeId) {
         items[storeId] = _.without(Object.keys(need[storeId] || {}), '.key').map(function (item) {
-          checked[storeId + ':' + item] = need[storeId][item] ? false : true;
+          // checked[storeId + ':' + item] = need[storeId][item] ? false : true;
           return {
             delivery: delivery && delivery[storeId] && delivery[storeId][item],
             need: need[storeId][item],
             name: item,
-            id: item.replace(/[^\w\d]/g, ''),
-            path: storeId + ':' + item,
+            id: storeId + '-' + item.replace(/[^\w\d]/g, ''),
+            store: storeId,
+            // path: storeId + ':' + item,
             sortKey: (need[storeId][item] ? '0' : '1') + item,
           };
         });

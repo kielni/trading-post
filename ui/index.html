@@ -48,20 +48,8 @@
                     </div>
                   </div>
                 </li>
-                <template v-for="item in sortedNeed[store.id]">
-                  <li class="list-group-item item" v-bind:class="{ need: item.need, have: !item.need }" v-on:mousedown="itemMousedown(item)" v-on:mouseup="itemMouseup(item)">
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" v-bind:id="item.id" v-bind:value="item.name" v-on:change="change(store.id, item.name, $event)" v-model="checked[item.path]">
-                        {{item.name}}
-                        <span v-if="item.need > 1">
-                          {{item.need}}
-                        </span>
-                      </label>
-                    </div>
-                    <i v-if="item.delivery" class="fa fa-truck delivery"></i>
-                  </li>
-                </template>
+                <list-item v-for="item in sortedNeed[store.id]" :item="item" v-on:check="check" v-on:quantity="quantity" :key="item.id">
+                </list-item>
                 <div v-if="!sortedNeed[store.id].length" class="empty">
                   Nothing on the list.
                 </div>
@@ -74,8 +62,27 @@
         <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
       </div>
     </template>
-
   </div>
+
+  <script type="text/x-template" id="list-item-template">
+    <li class="list-group-item item" v-bind:class="{ need: item.need, have: !item.need }" v-on:mousedown="startTap" v-on:mouseup="endTap">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" v-bind:id="item.id" v-bind:value="item.name" v-on:change="check" v-model="checked">
+          {{item.name}}
+          <span v-if="item.need > 1 || editable">
+            ({{item.need}})
+          </span>
+        </label>
+      </div>
+      <div v-if="editable" class="btn-group btn-group-xs" role="group" aria-label="quantity">
+        <button class="quantity btn-group btn-group-xs" role="group" aria-label="-" v-on:click="remove">-</button>
+        <button class="quantity btn-group btn-group-xs" role="group" aria-label="+" v-on:click="add">+</button>
+      </div>
+      <i v-if="item.delivery" class="fa fa-truck delivery"></i>
+    </li>
+  </script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
