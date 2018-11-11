@@ -108,6 +108,9 @@ var vm = new Vue({
 
     addItem: function (storeId) {
       var item = this.newItem.toLowerCase();
+      if (!item) {
+        return;
+      }
       console.log('enter item ' + item + ' to ', storeId);
       this.$firebaseRefs.ref.child('need/' + storeId + '/' + item).set(1);
       this.show = { confirm: true };
