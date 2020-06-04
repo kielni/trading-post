@@ -16,6 +16,7 @@
   <script src="config.js"></script>
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="/favicon.png" />
+  <link rel="apple-touch-icon" sizes="114x114" href="/favicon.png" />
 </head>
 <body>
   <div id="app">
@@ -70,7 +71,7 @@
       <div class="checkbox">
         <label>
           <input type="checkbox" v-bind:id="item.id" v-bind:value="item.name" v-on:change="check" v-model="checked">
-          {{item.name}}
+          <span class="item">{{item.name}}</span>
           <span v-if="item.need > 1 || editable">
             ({{item.need}})
           </span>

@@ -37,8 +37,8 @@
 }
 
 .list-group-item.item {
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 .empty {
@@ -100,6 +100,15 @@
 
 .checkbox {
     display: inline-block;
+}
+
+.checkbox .item {
+    margin-left: 10px;
+}
+
+.checkbox input {
+    transform: scale(2);
+    -webkit-transform: scale(2);
 }
 
 .btn-group {
