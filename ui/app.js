@@ -1,5 +1,12 @@
 /* global config, firebase, Vue, _, $ */
 var db = firebase.initializeApp(config.firebase).database();
+firebase.auth().signInAnonymously()
+  .then(() => {
+    console.log('signInAnonymously ok')
+  })
+  .catch((error) => {
+    console.log('signInAnonymously error: ', error);
+  });
 
 Vue.component('list-item', {
   template: '#list-item-template',
@@ -60,21 +67,23 @@ Vue.component('list-item', {
 var vm = new Vue({
   el: '#app',
 
-  data: {
-    storeId: config.defaultStore,
-    newItem: '',
-    show: { confirm: false, undo: true },
-    last: {},
-    itemsLoaded: []
+  data: function () {
+    return {
+      storeId: config.defaultStore,
+      newItem: '',
+      show: { confirm: false, undo: true },
+      last: {},
+      itemsLoaded: [],
+    }
   },
 
   firebase: function () {
     return {
       ref: {
         source: db.ref(),
-        asObject: true
+        asObject: true,
       },
-    };
+    }
   },
 
   methods: {
@@ -111,7 +120,6 @@ var vm = new Vue({
       if (!item) {
         return;
       }
-      console.log('enter item ' + item + ' to ', storeId);
       this.$firebaseRefs.ref.child('need/' + storeId + '/' + item).set(1);
       this.show = { confirm: true };
       var _this = this;
